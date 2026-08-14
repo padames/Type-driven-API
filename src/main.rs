@@ -54,18 +54,18 @@ impl<Iter> Progress<Iter, Unbounded> {
 impl<Iter> Progress<Iter, Unbounded> 
 where Iter: ExactSizeIterator {
     pub fn with_last_elem(self) -> Progress<Iter, Bounded> {
-        let boundType: Bounded = Bounded {
+        let bound_type: Bounded = Bounded {
             num_elements: self.iter.len(),
             book_ends: ( '[', '}')
         };
         // the following is the new state of the Progress bar
-        Progress { i: self.i, iter: self.iter, bound_type: boundType }
+        Progress { i: self.i, iter: self.iter, bound_type: bound_type }
     }
 }
 
 impl<Iter> Progress<Iter, Bounded> {
-    pub fn with_book_ends(mut self, bookEnds: (char, char)) -> Self {
-        self.bound_type.book_ends = bookEnds;
+    pub fn with_book_ends(mut self, book_ends: (char, char)) -> Self {
+        self.bound_type.book_ends = book_ends;
         self
     }
 }
@@ -105,13 +105,13 @@ fn expensive_calculation(_n: &i32) {
 
 
 fn main() {
-    let book_end: (char, char) = ('#', '#');
+    let a_book_end: (char, char) = ('{', '}');
     // The following API call will produce errors because progress is Unbound by default 
 //    for n in (0 .. ).progress().with_book_ends(book_end) {
 //       expensive_calculation(&n);
 //    }
     let v = vec![1,2,3,4,5];
-    for n in v.iter().progress().with_last_elem().with_book_ends(book_end) {
+    for n in v.iter().progress().with_last_elem().with_book_ends(a_book_end) {
         expensive_calculation(n);
     }
 }
