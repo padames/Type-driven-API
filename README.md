@@ -26,5 +26,9 @@ stateDiagram-v2
     Unbound --> [*]
 ```
 
+When and instance of Progress is created, it starts as type Unbound. As it accepts method calls, it transitions to state Bound if the calls made on it require the implemetation of the trait specified in Rust. 
+satisfied
+
+
 # References
 1. https://youtu.be/bnnacleqg6k?si=1N58X2fte4oZB19M
