@@ -22,7 +22,6 @@ In `5.main.type_state.rs` there are two states for an instance of Progress to be
 stateDiagram-v2
     [*] --> Unbound
     Unbound --> Bound
-    Unbound --> Unbound
     Bound --> [*]
     Unbound --> [*]
 ```
