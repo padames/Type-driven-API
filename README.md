@@ -9,8 +9,14 @@ Each of the files enumerated 1 to 5 has the code at different points of the talk
 
 In `5.main.type_state.rs` there are two states for an instance of Progress to be in: Unbound and Bound.
 
-
-
+```mermaid
+stateDiagram-v2
+    [*] --> Unbound
+    Unbound --> Bound
+    Unbound --> Unbound
+    Bound --> [*]
+    Unbound --> [*]
+```
 
 # References
 1. https://youtu.be/bnnacleqg6k?si=1N58X2fte4oZB19M
