@@ -14,6 +14,36 @@ struct Bounded {
     book_ends: (char, char)
 }
 
+
+// The ProgressDisplay trait will be used to define how the Progress bar
+// behaves when the method display is called on a type that implements it.
+trait ProgressDisplay : Sized {
+    fn display<Iter>(&self, progress: &Progress<Iter,Self>);
+}
+
+// here is how display works for instances of the type Unbounded
+impl ProgressDisplay for Unbounded {
+    // display can only use the current state of the bar, namely.
+    // the count element i to represent its advance
+    fn display<Iter>(&self, progress: &Progress<Iter, Self>) {
+        println!("{}",  "*".repeat(progress.i))
+    }
+}
+
+// and here is how display works for instances of the type Bounded
+impl ProgressDisplay for Bounded {
+    // display can use the left and right elements of the book ends
+    // that a Bounded object has. It can also compute the difference
+    // between the number of elements to iterate over and the current
+    fn display<Iter>(&self, progress: &Progress<Iter, Self>) {
+        println!("{}{}{}{}",
+            self.book_ends.0, //an instance of Bounded has book_ends
+            "*".repeat(progress.i),
+            " ".repeat(self.num_elements - progress.i),
+            self.book_ends.1)
+    }
+}
+
 // A data structure to contain the iterator passed in for iteration
 struct Progress<Iter, Bound> {
     iter: Iter,
@@ -21,36 +51,18 @@ struct Progress<Iter, Bound> {
     bound_type: Bound,
 }
 
-// the following trait ties the two new types to the Progress bar
-trait ProgressDisplay : Sized {
-    fn display<Iter>(&self, progress: &Progress<Iter,Self>);
-}
-
-impl ProgressDisplay for Unbounded {
-    fn display<Iter>(&self, progress: &Progress<Iter, Self>) {
-        println!("{}",  "*".repeat(progress.i))
-    }
-}
-
-impl ProgressDisplay for Bounded {
-    fn display<Iter>(&self, progress: &Progress<Iter, Self>) {
-        println!("{}{}{}{}",
-            self.book_ends.0,
-            "*".repeat(progress.i),
-            " ".repeat(self.num_elements - progress.i),
-            self.book_ends.1)
-    }
-}
-
-
+// An associated function to create progress bar instances
+// The initial state is always Unbounded
 impl<Iter> Progress<Iter, Unbounded> {
     pub fn new(iter: Iter) -> Self {
-        Progress { iter, i: 0, bound_type: Unbounded }// a new instance starting at counter 0
+        Progress { iter, i: 0, bound_type: Unbounded }// the state starts at 0
     }
 }
 
-// the following method is conditional to the Iter type implementing 
-// the ExactSizeIterator trait. This implementation is constrained
+// The method with_last_elem is defined for cases where the parameter type Iter
+// implements the ExactSizeIterator trait. This is a trigger for a change of 
+// type state of the progress bar. It is specified as the change of the bounded
+// type to type Bounded with default book ends and a known number of elements.
 impl<Iter> Progress<Iter, Unbounded> 
 where Iter: ExactSizeIterator {
     pub fn with_last_elem(self) -> Progress<Iter, Bounded> {
@@ -63,6 +75,9 @@ where Iter: ExactSizeIterator {
     }
 }
 
+// A parameterized Progress method to assign custom book ends
+// Note: the type bound called Bounded constraints its application to 
+// when the type state is an instance of Bounded
 impl<Iter> Progress<Iter, Bounded> {
     pub fn with_book_ends(mut self, book_ends: (char, char)) -> Self {
         self.bound_type.book_ends = book_ends;
@@ -70,7 +85,8 @@ impl<Iter> Progress<Iter, Bounded> {
     }
 }
 
-// implementing the trait Iterator for the struct Progress over the type Iter 
+// Implementing the trait Iterator for the type Progress when the associated type
+// Iter defines the trait Iterator. 
 // calls for defining the associated type Item and the function next
 impl<Iter, Bound> Iterator for Progress<Iter, Bound>
 where Iter: Iterator, Bound: ProgressDisplay {
@@ -79,17 +95,18 @@ where Iter: Iterator, Bound: ProgressDisplay {
     fn next(&mut self) -> Option<Self::Item> {
         print!("{}", CLEAR );
         self.bound_type.display(&self);
-        self.i += 1;
+        self.i += 1; // this is the state of the progress bar
         self.iter.next() 
     }     
 }
 
+// This trait is used to create the progress bar with its initial type state
 trait ProgressIteratorExt: Sized {
     fn progress(self) -> Progress<Self, Unbounded>;
 }
  
-//Implement the trait ProgressIteratorExt for the Rust struct
-//Iter such that it returns an object of type Progress
+// Implements ProgressIteratorExt for the Rust type Iter such that it returns
+// a new Progress bar
 impl<Iter> ProgressIteratorExt for Iter 
 where Iter: Iterator {
     fn progress(self) -> Progress<Self, Unbounded> {
@@ -97,15 +114,14 @@ where Iter: Iterator {
     }
 }
 
-
-
+// simulating useful work
 fn expensive_calculation(_n: &i32) {
     sleep(Duration::from_secs(1));
 }
 
 
 fn main() {
-    let a_book_end: (char, char) = ('{', '}');
+    let a_book_end: (char, char) = ('<', '>');
     // The following API call will produce errors because progress is Unbound by default 
 //    for n in (0 .. ).progress().with_book_ends(book_end) {
 //       expensive_calculation(&n);
