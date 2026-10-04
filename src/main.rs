@@ -62,7 +62,7 @@ impl<Iter> Progress<Iter, Unbounded> {
 // The method with_last_elem is defined for cases where the parameter type Iter
 // implements the ExactSizeIterator trait. This is a trigger for a change of 
 // type state of the progress bar. It is specified as the change of the bounded
-// type to type Bounded with default book ends and a known number of elements.
+// type to Bounded with default book ends and a known number of elements.
 impl<Iter> Progress<Iter, Unbounded> 
 where Iter: ExactSizeIterator {
     pub fn with_last_elem(self) -> Progress<Iter, Bounded> {
@@ -85,12 +85,13 @@ impl<Iter> Progress<Iter, Bounded> {
     }
 }
 
-// Implementing the trait Iterator for the type Progress when the associated type
-// Iter defines the trait Iterator. 
-// calls for defining the associated type Item and the function next
+// Implementing the trait Iterator for the type Progress when the 
+// associated type Iter defines the trait Iterator and Bound implements
+// ProgressDisplay so one can call display on its bound_type field.
+// Defines the associated type Item and the function next
 impl<Iter, Bound> Iterator for Progress<Iter, Bound>
 where Iter: Iterator, Bound: ProgressDisplay {
-    type Item = Iter::Item; // returns the iterator's item Progress receives 
+    type Item = Iter::Item; // The type of items Progress iterates over 
 
     fn next(&mut self) -> Option<Self::Item> {
         print!("{}", CLEAR );
